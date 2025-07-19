@@ -65,7 +65,7 @@ CI/CD Pipeline | [pipeline](https://gitlab.deepschool.ru/dl-deploy2/p.kukhtenkov
 
 Загрузка файлов `.env`, энкодера классов, модели на сервер:
 ```
-dvc.add.files
+make dvc.add.files
 ```
 
 Пайплайн CI/CD отрабатывает при каждом merge-request или коммите в ветку `dev`.
