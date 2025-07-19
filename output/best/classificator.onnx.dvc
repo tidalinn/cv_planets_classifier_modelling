@@ -1,0 +1,6 @@
+outs:
+- md5: a029d4ff31af0b9521e45beffb6ec9cf
+  size: 72
+  isexec: true
+  hash: md5
+  path: classificator.onnx

@@ -1,0 +1,6 @@
+[core]
+    remote = 91.206.15.25
+    autostage = true
+['remote "91.206.15.25"']
+    url = ssh://91.206.15.25/home/p.kukhtenkova/fp_modelling
+    user = p.kukhtenkova
