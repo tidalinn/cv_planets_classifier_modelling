@@ -1,0 +1,42 @@
+default_language_version:
+  python: python3.10
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=2048']
+      - id: check-yaml
+        args:
+          - '--unsafe'
+      - id: double-quote-string-fixer
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: end-of-file-fixer
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: debug-statements
+
+  - repo: 'https://github.com/pycqa/isort'
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: 'https://github.com/kynan/nbstripout'
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+
+  - repo: local
+    hooks:
+    - id: flake8
+      name: flake8
+      description: wemake-python-styleguide enforcement
+      entry: flake8
+      args: ["--config=setup.cfg"]
+      language: python
+      types: [python]
+      additional_dependencies: [wemake-python-styleguide>=0.17.0]

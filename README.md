@@ -1,93 +1,117 @@
-# final_project
+# final_project [modelling]
 
+> [Финальный проект (GitLab)](https://gitlab.deepschool.ru/dl-deploy2/lectures/-/tree/main/big-hw)
 
+Свойство | Значение
+-|-
+Источник данных | [Kaggle (planets-dataset)](https://www.kaggle.com/datasets/nikitarom/planets-dataset/data)
+Характер данных | Спутниковые снимки Амазонки
+Задача | Мульти-классовая классификация
+Инструменты | Python, Pandas, Lightning, ClearML, PyTorch, DVC, CI/CD, Linters
 
-## Getting started
+<br>
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Файлы
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Расположение | Предназначение | Примечание
+-|-|-
+`.env` | Настройка перемнных в `docker-compose.yml` |
+`configs/models/models.yaml` | Настройка моделей, которые используются в обучении | Для выбора модели из списка необходимо задать её индекс (`int`) в файле `project.yaml` в переменной `active_model_index: int` $ \in [0, \infin) $
+`src/constants.py` | Настройка именований в ClearML и путей к файлам
+`src/main.py` | Стандартный запуск обучения и тестирования |
+`src/main_pipeline.py` | Запуск обучения и тестирования через пайплайн ClearML |
+`output/best` | Лучшая модель, которая была определена командой `make select_best_model`
 
-## Add your files
+## Запуск
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+>* Первый запуск может занять ~1час
+>---
+>* На хосте должен быть установлен NVIDIA Docker2 и NVIDIA Container Toolkit
+>* Docker-образ весит ~21Gb
+>* Первая сборка docker-образа занимает ~20мин
+>* Если датасет уже скачан локально, можно поместить его в папку `dataset`, а для загрузки в ClearML использовать команду `make upload.dataset_from_local_to_clearml` (изменить в `command` в `docker-compose.yml`)
+>* Если датасет не скачан локально, то будет произведено его 1) скачивание, 2) распаковка, 3) загрузка в ClearML через команду `make upload.dataset_from_url_to_clearml` (по дефолту в `command` в `docker-compose.yml`), что занимает ~30мин
+>* Предусмотрена единственная загрузка датасета - в ходе перезапуска производится проверка существования датасета в ClearML и если он есть, то никакие скачивающе-распаковывающе-загружающие действия не производятся
+
+### Обучение
+
+Запуск обучения:
+```
+make run.gpu
+```
+
+Последовательность выполнения:
+1. Сборка образа
+2. Запуск контейнера
+3. Контейнер выполняет команду `make run.modelling` (`docker-compose.yml` -> `command`):
+    - Загрузка датасета в ClearML. Команда задаётся вручную в зависимости от места расположения проекта: с kaggle или с хоста. По дефолту - с kaggle
+        >Обе команды проверяют наличие датасета в ClearML, и если он существует, то пропускают дальнейшие шаги
+        - `make upload.dataset_from_url_to_clearml` - скачивание/распаковка/загрузка в ClearML набора данных
+        - `make upload.dataset_from_local_to_clearml` - загрузка существующего на хосте набора данных
+    - Запуск обучения `make train` (стандартный запуск) или `make train.pipeline` (ClearML Pipeline)
+    - Выбор лучшей модели `select_best_model` (выбирается по максимальному значению `valid_f2`)
+
+### Сервисы
+
+Сервис |Ссылка
+-|-
+ClearML Dataset | [planets-classifier/planets-dataset](https://app.clear.ml/projects/c4785f8f04004d8b94d2217c10e51ebc/experiments/1054f86e63d24375ab4bf533cb7aac22/output/execution)
+ClearML Model | [artifact](https://app.clear.ml/projects/*/models/d853949561ce4e7f92caf2359af30937)
+ClearML Pipeline | [pipeline](https://app.clear.ml/projects/923d14e57e8a425e8d490cbab124ed39/experiments/d6fa7e37477e4bb2a2535e9a97ef2df1/output/execution)
+Эксперименты | [experiments.md](experiments.md)
+CI/CD Pipeline | [pipeline](https://gitlab.deepschool.ru/dl-deploy2/p.kukhtenkova/final_project_modelling/-/pipelines)
+
+### CICD
+
+Загрузка файлов `.env`, энкодера классов, модели на сервер:
+```
+dvc.add.files
+```
+
+Пайплайн CI/CD отрабатывает при каждом merge-request или коммите в ветку `dev`.
+
+## Структура проекта
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.deepschool.ru/dl-deploy2/p.kukhtenkova/final-project.git
-git branch -M main
-git push -uf origin main
+├── .dvc/                                      # конфигурация DVC
+├── configs/                                   # конфигурационные файлы
+│    ├── models/
+│    │    └── models.yaml                      # модели для экспериментов
+│    └── project.yaml                          # весь проект
+├── dataset/                                   # данные
+├── logs/                                      # логи
+├── notebooks/                                 # Jupyter-ноутбуки
+├── output/                                    # модели в ONNX
+│    └── best/                                 # лучшая модель по метрике
+├── requirements/                              # зависимости
+├── src/                                       # исходный код
+│    ├── callbacks/                            # моудль коллбеков
+│    │    ├── batch_visualize.py               # визуализация батчей
+│    │    ├── clearml_track.py                 # сохранение чекпоитов
+│    │    ├── model_summary.py                 # логировние слоёв модели
+│    │    └── onnx_export.py                   # экспорт и валидация ONNX-модели
+│    ├── configs/                              # модуль конфигураций
+│    │    └── project_config.py                # конфигурация
+│    ├── data/                                 # модуль подготовки данных
+│    │    ├── data_module.py                   # подготовка датасета
+│    │    ├── dataset.py                       # кастомный датасет
+│    │    └── transforms.py                    # трансформации изображений
+│    ├── executables/                          # модуль исполняемых скриптов
+│    │    ├── select_best_model.py             # выбор лучшей модели
+│    │    └── upload_dataset_to_clearml.py     # загрузка датасета в ClearML
+│    ├── model/                                # модуль подготовки модели
+│    │    ├── lightning_module.py              # модель
+│    │    └── metrics.py                       # метрики
+│    ├── pipeline/                             # модуль папйплайна ClearML
+│    │    ├── predict.py                       # инференс
+│    │    ├── preprocess.py                    # препроцессинг
+│    │    └── train.py                         # обучение
+│    ├── utils/                                # модуль полезных функций
+│    │    └── logger.py                        # кастомный логгер
+│    ├── constants.py                          # константы
+│    ├── main_pipeine.py                       # запуск пайплайна ClearML
+│    └── main.py                               # запуск обучения
+├── .gitlab-ci.yml                             # настройка CICD
+├── Makefile                                   # управляющие команды
+└── ...
 ```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.deepschool.ru/dl-deploy2/p.kukhtenkova/final-project/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
