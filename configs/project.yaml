@@ -22,7 +22,7 @@ dataset:
   data_split:
   - 0.8
   - 0.2
-  num_workers: 19
+  num_workers: 1
   pin_memory: true
   persistent_workers: false
 
