@@ -2,7 +2,6 @@ version: "3.8"
 
 services:
   train:
-    shm_size: 4g
     runtime: nvidia
     deploy:
       resources:

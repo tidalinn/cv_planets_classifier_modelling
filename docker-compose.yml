@@ -20,3 +20,4 @@ services:
       - CLEARML_API_HOST=${CLEARML_API_HOST}
       - KAGGLE_USERNAME=${KAGGLE_USERNAME}
       - KAGGLE_KEY=${KAGGLE_KEY}
+    shm_size: 4g
