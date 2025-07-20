@@ -34,4 +34,5 @@ deploy_stage:
     - dvc remote add -d origin ssh://$STAGING_USERNAME@$STAGING_HOST$DVC_CACHE_DIR
     - dvc remote modify origin ask_password true
     - dvc pull .env.dvc
-    # - make run.cpu
+    # - docker compose up --build -d
+    # - docker compose down
