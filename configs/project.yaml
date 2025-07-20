@@ -35,7 +35,7 @@ onnx:
 trainer:
   devices: 1
   min_epochs: 0
-  max_epochs: 15
+  max_epochs: 1
   log_every_n_steps: 50
   deterministic: true
   overfit_batches: 0.0

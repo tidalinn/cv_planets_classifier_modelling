@@ -35,10 +35,6 @@
 
 ### Обучение
 
-Сборка контейнеров:
-```
-make build
-```
 Запуск обучения:
 ```
 make run.gpu
@@ -54,7 +50,11 @@ make run.gpu
         - `make upload.dataset_from_local_to_clearml` - загрузка существующего на хосте набора данных
     - Запуск обучения `make train` (стандартный запуск) или `make train.pipeline` (ClearML Pipeline)
     - Выбор лучшей модели `select_best_model` (выбирается по максимальному значению `valid_f2`)
-    - Загрузка файлов `.env`, энкодера классов, модели на сервер командой `make dvc.add.files`
+
+Загрузка файлов `.env`, энкодера классов, модели в dvc
+```
+make dvc.add.files
+```
 
 ### Сервисы
 
