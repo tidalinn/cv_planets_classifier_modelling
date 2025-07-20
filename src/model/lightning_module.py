@@ -141,9 +141,16 @@ class ClassificationLightningModule(LightningModule):
 
     def _search_threshold(self):
         logits = torch.cat(self._logits_valid, dim=0)
+        probs = torch.sigmoid(logits)
         targets = torch.cat(self._targets_valid, dim=0)
 
-        thresholds = np.linspace(0.05, 0.95, 19)
+        prob_min = probs.min().item()
+        prob_mean = probs.mean().item()
+        prob_max = probs.max().item()
+
+        logger.info(f'Probabilities | min {prob_min:.4f} | mean {prob_mean:.4f} | max {prob_max:.4f}')
+
+        thresholds = np.arange(0.1, 0.95, 0.1)
         best_threshold = 0.5
         best_score = 0.0  # noqa: WPS358
 
@@ -151,11 +158,10 @@ class ClassificationLightningModule(LightningModule):
             f2 = MultilabelFBetaScore(**self.config.metrics.common, **self.config.metrics.f2)
             f2.threshold = threshold
 
-            score = f2(torch.sigmoid(logits), targets).item()
+            score = f2(probs, targets).item()
 
             if score > best_score:
                 best_score = score
                 best_threshold = threshold
 
-        self.log('best threshold', best_threshold, on_epoch=True, prog_bar=True, logger=True)
         logger.info(f'Best threshold: {best_threshold}')

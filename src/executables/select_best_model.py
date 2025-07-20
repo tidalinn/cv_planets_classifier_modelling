@@ -36,10 +36,7 @@ def select_best_model():
             best_file = file_onnx
 
     logger.info(f'Selected best model at {best_file}')
-
-    with open(path_file, 'w') as file_model:
-        file_model.write(best_file)
-
+    shutil.copy(best_file, path_file)
     logger.info(f'Copied best model to {path_file}')
 
 
