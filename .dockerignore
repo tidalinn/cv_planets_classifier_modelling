@@ -1,26 +1,27 @@
 __pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 .dockerignore
-.dvcignore
 .git
 .gitignore
 .gitlab-ci.yml
 
 .env.example
 
-.dvc/
 .git/
 .venv/
 cicd/
-dataset*/
+dataset/
 notebooks/
 
-docker-compose.yml
+docker-compose*.yml
 Dockerfile
 
 .pre-commit-config.yaml
 setup.cfg
 
-*.dvc
 *.md
 *.example

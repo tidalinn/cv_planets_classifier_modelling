@@ -6,6 +6,9 @@ services:
     build:
       context: .
       target: base
+      args:
+        STAGING_HOST: ${STAGING_HOST}
+        SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}
     image: ${TRAIN_NAME}:latest
     env_file:
       - .env

@@ -1,23 +1,33 @@
-.PHONY = run.modelling dvc.connect dvc.add.files down run.gpu run.cpu
+.PHONY = dvc.connect run.modelling down build run.gpu run.cpu
 
 include .env
 export
 
 
-STAGE  := dev
 PYTHON := python3 -m
 
 KAGGLE_DATASET := nikitarom/planets-dataset
 
-VENV        := ~/.venv
-VENV_PYTHON := $(VENV)/bin/$(PYTHON)
-VENV_PIP    := $(VENV)/bin/pip
 
-PATH_SSH     := /home/$(STAGING_USERNAME)
-PATH_CICD    := $(PATH_SSH)/cicd/fp_modelling
-PATH_UPLOADS := $(PATH_CICD)/uploads
-PATH_DATASET := $(PATH_CICD)/dataset
-PATH_SCRIPTS := $(PATH_CICD)/scripts
+# --- DVC ---
+
+dvc.connect:
+	ssh $(STAGING_USERNAME)@$(STAGING_HOST)
+
+dvc.init:
+ifeq ($(wildcard .dvc/),)
+	dvc init --no-scm
+	dvc remote add --default $(STAGING_HOST) ssh://$(STAGING_HOST)/home/$(STAGING_USERNAME)/fp_modelling
+	dvc remote modify $(STAGING_HOST) user $(STAGING_USERNAME)
+	dvc remote list
+	dvc config core.autostage true
+endif
+
+dvc.add.files: dvc.init
+	dvc add .env
+	dvc add output/encoder/mlb.pkl
+	dvc add output/best/classificator.onnx
+	dvc push
 
 
 # -- EXECUTABLES ---
@@ -37,41 +47,7 @@ train.pipeline:
 select_best_model:
 	$(PYTHON) src.executables.select_best_model
 
-run.modelling: upload.dataset_from_kaggle_to_clearml train select_best_model
-
-
-# --- VENV ---
-
-venv.create:
-ifeq ($(wildcard $(VENV)/),)
-	$(PYTHON) venv $(VENV)
-	$(VENV_PIP) install --no-cache-dir -r requirements/requirements-local.txt
-	$(VENV_PIP) install --upgrade pip
-ifeq ($(STAGE),dev)
-	$(VENV_PIP) install --no-cache-dir -r requirements/requirements-dev.txt
-endif
-endif
-
-
-# --- DVC ---
-
-dvc.connect:
-	ssh $(STAGING_USERNAME)@$(STAGING_HOST)
-
-dvc.init: venv.create
-ifeq ($(wildcard .dvc/),)
-	$(VENV_PYTHON) dvc init
-	$(VENV_PYTHON) dvc remote add --default $(STAGING_HOST) ssh://$(STAGING_HOST)/home/$(STAGING_USERNAME)/fp_modelling
-	$(VENV_PYTHON) dvc remote modify $(STAGING_HOST) user $(STAGING_USERNAME)
-	$(VENV_PYTHON) dvc remote list
-	$(VENV_PYTHON) dvc config core.autostage true
-endif
-
-dvc.add.files: dvc.init
-	$(VENV_PYTHON) dvc add .env
-	$(VENV_PYTHON) dvc add output/encoder/mlb.pkl
-	$(VENV_PYTHON) dvc add output/best/classificator.onnx
-	$(VENV_PYTHON) dvc push;
+run.modelling: upload.dataset_from_kaggle_to_clearml train select_best_model dvc.add.files
 
 
 # -- DOCKER ---
@@ -79,8 +55,11 @@ dvc.add.files: dvc.init
 down:
 	docker compose down --volumes --remove-orphans
 
-run.gpu: down
-	docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+build:
+	@SSH_PRIVATE_KEY="$$(cat ~/.ssh/id_rsa)" docker compose build
 
-run.cpu: down
-	docker compose up --build
+run.cpu:
+	docker compose up
+
+run.gpu:
+	docker compose -f docker-compose.yml -f docker-compose.gpu.yml up
