@@ -1,12 +1,12 @@
-# final_project [modelling]
+# CV planets-classifier [modelling]
 
-> [Финальный проект (GitLab)](https://gitlab.deepschool.ru/dl-deploy2/lectures/-/tree/main/big-hw)
+> [CV planets classifier [service]](https://github.com/tidalinn/cv_planets_classifier_service)
 
 Свойство | Значение
 -|-
 Источник данных | [Kaggle (planets-dataset)](https://www.kaggle.com/datasets/nikitarom/planets-dataset/data)
 Характер данных | Спутниковые снимки Амазонки
-Задача | Мульти-классовая классификация
+Задача | Multilabel-классификация
 Инструменты | Python, Pandas, Lightning, ClearML, PyTorch, DVC, CI/CD, Linters
 
 <br>
@@ -63,7 +63,6 @@ ClearML Dataset | [planets-classifier/planets-dataset](https://app.clear.ml/proj
 ClearML Model | [artifact](https://app.clear.ml/projects/*/models/d853949561ce4e7f92caf2359af30937)
 ClearML Pipeline | [pipeline](https://app.clear.ml/projects/923d14e57e8a425e8d490cbab124ed39/experiments/d6fa7e37477e4bb2a2535e9a97ef2df1/output/execution)
 Эксперименты | [experiments.md](experiments.md)
-CI/CD Pipeline | [pipeline](https://gitlab.deepschool.ru/dl-deploy2/p.kukhtenkova/final_project_modelling/-/pipelines)
 
 ### CICD
 
