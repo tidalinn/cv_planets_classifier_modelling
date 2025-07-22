@@ -1,6 +1,6 @@
-# final_project [modelling]
+# CV planets-classifier [modelling]
 
-> [Финальный проект (GitLab)](https://gitlab.deepschool.ru/dl-deploy2/lectures/-/tree/main/big-hw)
+> [CV planets classifier [service]](https://github.com/tidalinn/cv_planets_classifier_service)
 
 Свойство | Значение
 -|-
@@ -61,5 +61,5 @@ make -f Makefile.dvc dvc.add_files
 -|-
 ClearML Dataset | [planets-classifier/planets-dataset](https://app.clear.ml/projects/c4785f8f04004d8b94d2217c10e51ebc/experiments/1054f86e63d24375ab4bf533cb7aac22/output/execution)
 ClearML Model | [artifact](https://app.clear.ml/projects/ee3520d1dd974ce3819097322568b32e/experiments/87f8c31fcb5b4102b3192908657f2db9/output/execution)
-ClearML Pipeline | [pipeline](https://app.clear.ml/projects/923d14e57e8a425e8d490cbab124ed39/experiments/1aed9e9a0f424939b0c6e5c7c28996d1/output/execution)
+ClearML Pipeline | [pipeline](https://app.clear.ml/projects/923d14e57e8a425e8d490cbab124ed39/experiments/f9e71b34e0984f98b290919b94b2ca25/output/execution)
 Эксперименты | [experiments.md](experiments.md)
