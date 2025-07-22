@@ -13,13 +13,9 @@ __pycache__/
 *.pth
 *.egg-info
 *.log
-*.onnx
 *.jpg
 *.csv
 *.zip
-*.log
-*.ckpt
-*.pkl
 
 # directories
 .venv/
