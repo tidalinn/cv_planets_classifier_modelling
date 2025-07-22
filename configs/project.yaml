@@ -4,7 +4,8 @@ defaults:
 
 task: multilabel
 num_classes: 17
-active_model_index: 4
+active_model_index: 0
+seed: 12345
 
 dataset:
   img_size:
@@ -23,7 +24,6 @@ dataset:
   - 0.8
   - 0.2
   num_workers: 19
-  pin_memory: true
   persistent_workers: false
 
 onnx:
@@ -39,11 +39,5 @@ trainer:
   log_every_n_steps: 50
   deterministic: true
   overfit_batches: 0.0
+  logger: true
   enable_progress_bar: true
-
-metrics:
-  common:
-    average: macro
-    threshold: 0.1
-  f2:
-    beta: 2.0

@@ -5,6 +5,7 @@ experiment_0:
   dropout: 0.2
   hidden_dim: 512
   learning_rate: 5e-4
+  memory_efficient: false
 
 experiment_1:
   name: resnet50
@@ -13,6 +14,7 @@ experiment_1:
   dropout: 0.3
   hidden_dim: 512
   learning_rate: 3e-4
+  memory_efficient: false
 
 experiment_2:
   name: efficientnet_b0
@@ -21,6 +23,7 @@ experiment_2:
   dropout: 0.2
   hidden_dim: 512
   learning_rate: 5e-4
+  memory_efficient: false
 
 experiment_3:
   name: efficientnet_b1
@@ -38,6 +41,7 @@ experiment_4:
   dropout: 0.2
   hidden_dim: 512
   learning_rate: 5e-4
+  memory_efficient: false
 
 experiment_5:
   name: resnet50
@@ -46,3 +50,4 @@ experiment_5:
   dropout: 0.2
   hidden_dim: 512
   learning_rate: 5e-4
+  memory_efficient: false
