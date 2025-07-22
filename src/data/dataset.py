@@ -1,5 +1,5 @@
-import os
-from typing import List, Tuple
+from pathlib import Path
+from typing import Tuple
 
 import cv2 as cv
 import numpy as np
@@ -11,7 +11,7 @@ from torchvision.transforms import Compose
 
 class ClassificationDataset(Dataset):
 
-    def __init__(self, dataframe: pd.DataFrame, labels: List[List[int]], path: str, transform: Compose = None):
+    def __init__(self, dataframe: pd.DataFrame, labels: np.ndarray, path: str, transform: Compose = None):
         super().__init__()
         self.dataframe = dataframe
         self.labels = labels
@@ -25,7 +25,7 @@ class ClassificationDataset(Dataset):
         path_image = f'{self.dataframe.image_name[index]}.jpg'
         label = torch.tensor(self.labels[index]).float()
 
-        image = cv.imread(os.path.join(self.path, path_image))
+        image = cv.imread(str(Path(self.path) / path_image))
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
         if self.transform:
