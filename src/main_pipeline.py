@@ -1,45 +1,37 @@
-import logging
-
 from clearml import PipelineDecorator
 
 from src.configs.initializer import init_config
 from src.constants import PATH_CONFIGS, PROJECT_NAME
-from src.utils.logger import init_logger
-
-logger = logging.getLogger(__name__)
 
 
 @PipelineDecorator.component(cache=False)
 def preprocess_component() -> str:
     from src.pipeline.preprocess import preprocess
     config = init_config(PATH_CONFIGS)
-    path_output = preprocess(config)
-    return path_output
+    return preprocess(config)
 
 
 @PipelineDecorator.component(cache=False)
-def train_component(path_dataset: str) -> str:
+def train_component(id_task_preprocess: str) -> str:
     from src.pipeline.train import train
     config = init_config(PATH_CONFIGS)
-    path_model = train(config, path_dataset)
-    return path_model
+    return train(config, id_task_preprocess)
 
 
 @PipelineDecorator.component(cache=False)
-def predict_component(path_model: str):
+def predict_component(id_task_preprocess: str, id_task_train: str):
     from src.pipeline.predict import predict
     config = init_config(PATH_CONFIGS)
-    predict(config, path_model)
+    return predict(config, id_task_preprocess, id_task_train)
 
 
 @PipelineDecorator.pipeline(name='MultiStage ClearML Pipeline', project=PROJECT_NAME, version='1.0')
 def run_pipeline():
-    path_output = preprocess_component()
-    path_model = train_component(path_output)
-    predict_component(path_model)
+    id_task_preprocess = preprocess_component()
+    id_task_train = train_component(id_task_preprocess)
+    predict_component(id_task_preprocess, id_task_train)
 
 
 if __name__ == '__main__':
-    init_logger()
     PipelineDecorator.run_locally()
     run_pipeline()
