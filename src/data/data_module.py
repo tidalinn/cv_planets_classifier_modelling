@@ -29,9 +29,11 @@ from src.utils.logger import LOGGER
 
 class ClassificationDataModule(LightningDataModule):  # noqa: WPS230
 
-    def __init__(self, config: ProjectConfig):
+    def __init__(self, config: ProjectConfig, is_preprocessed: bool = False):
         super().__init__()
+
         self.config = config
+        self.is_preprocessed = is_preprocessed
 
         self._transform_train = get_train_transforms(config.dataset)
         self._transform_valid = get_valid_transforms(config.dataset)
@@ -47,7 +49,7 @@ class ClassificationDataModule(LightningDataModule):  # noqa: WPS230
 
     @property
     def class_to_idx(self) -> Dict[str, int]:
-        if not self.initialized:
+        if not self.initialized and not self.is_preprocessed:
             self.prepare_data()
             self.process_data()
             self.setup('test')
@@ -77,10 +79,10 @@ class ClassificationDataModule(LightningDataModule):  # noqa: WPS230
         LOGGER.info('Preprocessing data...')
 
         self.x_split = split_data(self.config, self.path_dataset)
-        self.y_encoded = encode_labels(self.x_split['x_train'], self.x_split['x_valid'])
+        self.y_labels = encode_labels(self.x_split['x_train'], self.x_split['x_valid'])
 
         self._class_to_index = get_class_to_index(self.path_dataset)
-        self._pos_weight = get_pos_weight(self.path_dataset, y_train=self.y_encoded['y_train'])
+        self._pos_weight = get_pos_weight(self.path_dataset, y_train=self.y_labels['y_train'])
 
         LOGGER.info('Finished preprocessing')
 
@@ -88,14 +90,14 @@ class ClassificationDataModule(LightningDataModule):  # noqa: WPS230
         if stage == 'fit':
             self.data_train = ClassificationDataset(
                 dataframe=self.x_split['x_train'],
-                labels=self.y_encoded['y_train'],
+                labels=self.y_labels['y_train'],
                 path=self.path_dataset / PATH_IMAGES_TRAIN,
                 transform=self._transform_train
             )
 
             self.data_valid = ClassificationDataset(
                 dataframe=self.x_split['x_valid'],
-                labels=self.y_encoded['y_valid'],
+                labels=self.y_labels['y_valid'],
                 path=self.path_dataset / PATH_IMAGES_TRAIN,
                 transform=self._transform_valid
             )

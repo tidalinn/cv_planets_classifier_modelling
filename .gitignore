@@ -9,13 +9,7 @@ __pycache__/
 # files
 .idea
 .env
-*.pt
-*.pth
 *.egg-info
-*.log
-*.jpg
-*.csv
-*.zip
 
 # directories
 .venv/

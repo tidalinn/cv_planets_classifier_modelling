@@ -1,5 +1,4 @@
-import logging
-import os
+from pathlib import Path
 from typing import Dict, Optional
 
 from clearml import OutputModel, Task
@@ -8,8 +7,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 
 from src.configs import ProjectConfig
 from src.constants import PROJECT_NAME
-
-logger = logging.getLogger(__name__)
+from src.utils.logger import LOGGER
 
 
 class ClearMLTrack(Callback):
@@ -29,7 +27,7 @@ class ClearMLTrack(Callback):
         final_checkpoint = self._select_checkpoint_for_export(trainer)
         extension = final_checkpoint.split('.')[-1]
 
-        logger.info(f'Uploading checkpoint {final_checkpoint} to ClearML')
+        LOGGER.info(f'Uploading checkpoint {final_checkpoint} to ClearML')
 
         self.output_model.update_weights(
             weights_filename=final_checkpoint,
@@ -69,15 +67,15 @@ class ClearMLTrack(Callback):
         if checkpoint is not None:
             path_checkpoint = checkpoint.best_model_path
 
-            if os.path.isfile(path_checkpoint):
-                logger.info(f'Selected best checkpoint at {path_checkpoint}')
+            if Path(path_checkpoint).is_file():
+                LOGGER.info(f'Selected best checkpoint at {path_checkpoint}')
                 return path_checkpoint
             else:
-                logger.warning('Found no best checkpoint')
+                LOGGER.warning('Found no best checkpoint')
 
-        path_checkpoint = os.path.join(trainer.log_dir, 'trainer-checkpoint.pth')
+        path_checkpoint = Path(trainer.log_dir) / 'trainer-checkpoint.pth'
 
         trainer.save_checkpoint(path_checkpoint)
-        logger.info(f'Saved checkpoint to {path_checkpoint}')
+        LOGGER.info(f'Saved checkpoint to {path_checkpoint}')
 
         return path_checkpoint

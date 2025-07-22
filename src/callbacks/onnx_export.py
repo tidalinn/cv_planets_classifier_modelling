@@ -1,44 +1,36 @@
-import logging
 import os
 from contextlib import contextmanager
-from glob import glob
+from pathlib import Path
 
 import onnx
 import onnxruntime
 import onnxsim
 import torch
 from lightning import Callback, Trainer
-from lightning.pytorch.callbacks import ModelCheckpoint
 from pytorch_lightning.loops import _EvaluationLoop
 from pytorch_lightning.trainer.states import RunningStage
 
 from src.configs import ProjectConfig
-from src.constants import PATH_CHECKPOINTS
+from src.executables.select_best_model import select_best_model
 from src.model.lightning_module import ClassificationLightningModule
 from src.model.metrics import get_metrics
-
-logger = logging.getLogger(__name__)
+from src.utils.logger import LOGGER
 
 
 class ONNXExport(Callback):
 
-    def __init__(self, config: ProjectConfig):
+    def __init__(self, config: ProjectConfig, path_checkpoints: Path):
         super().__init__()
         self.config = config
-
-        self.path_checkpoints = os.path.join(
-            PATH_CHECKPOINTS,
-            list(self.config.models.keys())[self.config.active_model_index]
-        )
-        os.makedirs(self.path_checkpoints, exist_ok=True)
+        self.path_checkpoints = path_checkpoints
 
     def on_train_end(self, trainer: Trainer, lightning_module: ClassificationLightningModule):
-        path_checkpoint = self._select_checkpoint_for_export(trainer)
-        logger.info(f'Selected checkpoint {path_checkpoint}')
+        path_checkpoint = select_best_model(self.path_checkpoints, suffix='.ckpt')
+        LOGGER.info(f'Selected checkpoint {path_checkpoint}')
 
         model = ClassificationLightningModule.load_from_checkpoint(path_checkpoint, map_location='cpu').model
         model_file = os.path.basename(path_checkpoint).replace('.ckpt', '.onnx')
-        path_onnx = os.path.join(self.path_checkpoints, model_file)
+        path_onnx = self.path_checkpoints / model_file
 
         with self._set_eval_mode(model):
             self._convert_to_onnx(
@@ -48,17 +40,7 @@ class ONNXExport(Callback):
                 input_w=self.config.dataset.img_size[0],
             )
 
-        self._validate_onnx(trainer, lightning_module)
-
-    def _select_checkpoint_for_export(self, trainer: Trainer) -> str:
-        for callback in trainer.callbacks:
-            if isinstance(callback, ModelCheckpoint):
-                if os.path.isfile(callback.best_model_path):
-                    return callback.best_model_path
-
-        path_checkpoint = os.path.join(trainer.log_dir, 'best_checkpoint.ckpt')
-        trainer.save_checkpoint(path_checkpoint)
-        return path_checkpoint
+        self._validate_onnx(trainer, lightning_module, path_onnx)
 
     def _convert_to_onnx(self, model: torch.nn.Module, path: str, input_h: int, input_w: int):
         dummy_input = torch.randn(
@@ -70,7 +52,7 @@ class ONNXExport(Callback):
         with torch.no_grad():
             model(dummy_input)
 
-        logger.info('Exporting model to ONNX...')
+        LOGGER.info('Exporting model to ONNX...')
 
         torch.onnx.export(
             model=model,
@@ -78,7 +60,7 @@ class ONNXExport(Callback):
             f=path,
             verbose=False,
             export_params=True,
-            opset_version=12,
+            opset_version=12,  # noqa: WPS432
             do_constant_folding=True,
             input_names=['input'],
             output_names=['output'],
@@ -100,7 +82,7 @@ class ONNXExport(Callback):
         )
 
         onnx.save(model, path)
-        logger.info(f'Saved model to {path}')
+        LOGGER.info(f'Saved model to {path}')
 
     @contextmanager
     def _set_eval_mode(self, net: torch.nn.Module):
@@ -111,17 +93,17 @@ class ONNXExport(Callback):
             if net.training:
                 net.train()
 
-    def _validate_onnx(self, trainer: Trainer, lightning_module: ClassificationLightningModule):
-        path = self._get_last_model()
-        logger.info(f'Evaluating ONNX model at {path}')
-
+    def _validate_onnx(  # noqa: WPS210
+        self,
+        trainer: Trainer,
+        lightning_module: ClassificationLightningModule,
+        path: str
+    ):
         dataloader = trainer.datamodule.val_dataloader()
         batch = next(iter(dataloader))
         _, labels = batch
 
-        self.config.metrics.common.update({'num_labels': labels.shape[1]})
-
-        metrics = get_metrics(self.config.metrics)
+        metrics = get_metrics(labels.shape[1])
         metrics.reset()
 
         ort_session = onnxruntime.InferenceSession(
@@ -137,16 +119,7 @@ class ONNXExport(Callback):
             probs = torch.sigmoid(logits)
             metrics(probs, targets)
 
-        eval_results = metrics.compute()
-        _EvaluationLoop._print_results([eval_results], RunningStage.TESTING)
-
-    def _get_last_model(self) -> str:
-        models = glob(os.path.join(self.path_checkpoints, '*.onnx'))
-
-        if not models:
-            text = f'No ONNX models found in {self.path_checkpoints}'
-            logger.error(text)
-            raise FileNotFoundError(text)
-
-        models.sort(key=os.path.getmtime, reverse=True)
-        return models[0]
+        _EvaluationLoop._print_results(
+            results=[metrics.compute()],
+            stage=RunningStage.TESTING
+        )
