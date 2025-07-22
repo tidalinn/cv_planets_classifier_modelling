@@ -1,12 +1,11 @@
 from torchmetrics import MetricCollection
-from torchmetrics.classification import MultilabelFBetaScore
 
-from src.configs.project_config import MetricsConfig
+from src.model.score_fbeta import FBetaScore
 
 
-def get_metrics(config: MetricsConfig) -> MetricCollection:
+def get_metrics(num_labels: int) -> MetricCollection:
     return MetricCollection(
         {
-            'f2': MultilabelFBetaScore(**config.common, **config.f2)
+            'f2': FBetaScore(num_labels)
         }
     )
