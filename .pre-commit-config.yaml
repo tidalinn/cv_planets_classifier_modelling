@@ -39,4 +39,4 @@ repos:
       args: ["--config=setup.cfg"]
       language: python
       types: [python]
-      additional_dependencies: [wemake-python-styleguide>=0.17.0]
+      additional_dependencies: [wemake-python-styleguide>=1.2.0]
