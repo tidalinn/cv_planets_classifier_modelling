@@ -1,7 +1,4 @@
-.PHONY = run.modelling venv.remove dvc.connect dvc.add.files down run.gpu run.cpu
-
-include .env
-export
+.PHONY = *
 
 
 STAGE  := dev
@@ -48,27 +45,6 @@ endif
 
 venv.remove:
 	rm -rf $(VENV)
-
-
-# --- DVC ---
-
-dvc.connect:
-	ssh $(STAGING_USERNAME)@$(STAGING_HOST)
-
-dvc.init: venv.create
-ifeq ($(wildcard .dvc/),)
-	$(VENV_DVC) init
-	$(VENV_DVC) remote add --default $(STAGING_HOST) ssh://$(STAGING_HOST)/home/$(STAGING_USERNAME)/fp_modelling
-	$(VENV_DVC) remote modify $(STAGING_HOST) user $(STAGING_USERNAME)
-	$(VENV_DVC) remote list
-	$(VENV_DVC) config core.autostage true
-endif
-
-dvc.add.files: dvc.init
-	$(VENV_DVC) add .env
-	$(VENV_DVC) add output/encoder/mlb.pkl
-	$(VENV_DVC) add output/best/classificator.onnx
-	$(VENV_DVC) push;
 
 
 # -- DOCKER ---

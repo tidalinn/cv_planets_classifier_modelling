@@ -52,7 +52,7 @@ make run.gpu
 
 Загрузка файлов `.env`, энкодера классов, модели в dvc:
 ```
-make dvc.add.files
+make -f Makefile.dvc dvc.add_files
 ```
 
 ### Сервисы

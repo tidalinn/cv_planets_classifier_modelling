@@ -9,7 +9,7 @@ __pycache__/
 .gitignore
 .gitlab-ci.yml
 
-.env.example
+.env*
 
 .git/
 .venv/
@@ -25,3 +25,4 @@ setup.cfg
 
 *.md
 *.example
+*.dvc
