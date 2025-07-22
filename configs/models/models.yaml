@@ -1,39 +1,48 @@
 experiment_0:
   name: resnet50
   pretrained: true
-  freeze_backbone: true
-  dropout: 0.5
+  freeze_backbone: false
+  dropout: 0.2
   hidden_dim: 512
-  learning_rate: 1e-3
+  learning_rate: 5e-4
 
 experiment_1:
   name: resnet50
   pretrained: true
   freeze_backbone: false
-  dropout: 0.5
+  dropout: 0.3
   hidden_dim: 512
-  learning_rate: 1e-3
+  learning_rate: 3e-4
 
 experiment_2:
-  name: resnet50
+  name: efficientnet_b0
   pretrained: true
   freeze_backbone: false
-  dropout: 0.3
-  hidden_dim: 1024
+  dropout: 0.2
+  hidden_dim: 512
   learning_rate: 5e-4
 
 experiment_3:
+  name: efficientnet_b1
+  pretrained: true
+  freeze_backbone: false
+  dropout: 0.2
+  hidden_dim: 512
+  learning_rate: 5e-4
+  memory_efficient: true
+
+experiment_4:
   name: resnet18
   pretrained: true
   freeze_backbone: false
   dropout: 0.2
-  hidden_dim: 128
+  hidden_dim: 512
   learning_rate: 5e-4
 
-experiment_4:
+experiment_5:
   name: resnet50
   pretrained: true
-  freeze_backbone: false
+  freeze_backbone: true
   dropout: 0.2
   hidden_dim: 512
   learning_rate: 5e-4
