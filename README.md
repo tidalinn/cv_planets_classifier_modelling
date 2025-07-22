@@ -50,7 +50,7 @@ make run.gpu
     - Запуск обучения `make train` (стандартный запуск) или `make train.pipeline` (ClearML Pipeline)
     - Выбор лучшей модели `select_best_model` (выбирается по максимальному значению `valid_f2`)
 
-Загрузка файлов `.env`, энкодера классов, модели в dvc:
+Загрузка файлов модели в dvc:
 ```
 make -f Makefile.dvc dvc.add_files
 ```

@@ -1,6 +1,0 @@
-outs:
-- md5: 7429e179ad13b59b13eb668662956ce4
-  size: 730
-  isexec: true
-  hash: md5
-  path: mlb.pkl
