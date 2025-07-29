@@ -7,7 +7,7 @@
 Источник данных | [Kaggle (planets-dataset)](https://www.kaggle.com/datasets/nikitarom/planets-dataset/data)
 Характер данных | Спутниковые снимки Амазонки
 Задача | Multilabel-классификация
-Инструменты | Python, Pandas, Lightning, ClearML, PyTorch, DVC, Linters
+Инструменты | Python, Docker, Lightning, ClearML, PyTorch, DVC, Linters
 
 <br>
 
