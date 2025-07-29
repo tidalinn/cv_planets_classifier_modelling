@@ -52,7 +52,7 @@ make run.gpu
 
 Загрузка файлов модели в dvc:
 ```
-make -f Makefile.dvc dvc.add_files
+make -f Makefile_dvc dvc.add_files
 ```
 
 ### Сервисы
